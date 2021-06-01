@@ -58,3 +58,70 @@ cp /tmp/$Name-httpd-logs-${timestamp}.tar \
 s3://$Bucket/$Name-httpd-logs-${timestamp}.tar
 
 
+#Searching for inventory.html in the folder if found okay if not create the file
+
+cd /var/www/html
+
+search=$(ls)
+
+if  [[ $search == *"inventory.html"* ]]; then
+        echo "Inventory File found"
+else 
+        cd /var/www/html && touch inventory.html   
+	echo "<!DOCTYPE html>
+		<html>
+		<body>
+
+		<table style="width:100%">
+		  <tr>
+		    <th>Log Type</th>
+		    <th>Time Created</th> 
+		    <th>Type</th>
+		    <th>Size</th>
+		  </tr>
+		</table>
+		</body>
+		</html>" > inventory.html 
+
+	echo "New Inventory file Created"
+fi
+
+
+
+
+echo  "<!DOCTYPE html>
+                <html>
+                <body>
+
+                <table style="width:100%">
+                  <tr>
+                    <th>${name}-httpd</th>
+                    <th>${timestamp}</th> 
+                    <th>.tar</th>
+                    <th>$SIZE</th>
+                  </tr>
+                </table>
+                </body>
+                </html>" >> inventory.html
+
+
+
+CRON=$(systemctl status cron)
+
+if [[ $CRON == *"active (running)"* ]];then
+	echo "Cron is active and running"
+else
+	apt-get install cron
+fi
+
+cd /etc/cron.d
+
+CronV=$(ls)
+
+if [[ $CronV == *"automation"* ]];then
+	echo "Automation Cronjob is Available"
+else 
+	touch automation
+	echo  " 0 0 * * * /root/Automation_Project/automation.sh" > automation
+fi
+
